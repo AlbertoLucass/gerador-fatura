@@ -29,16 +29,28 @@ class UtilsData:
     
     @staticmethod
     def formatar_nome_arquivo(numero_fatura, data_inicio, data_fim):
-        # Criar diretório faturas se não existir
-        faturas_dir = "faturas"
-        if not os.path.exists(faturas_dir):
-            os.makedirs(faturas_dir)
-        
+        NOMES_MESES = {
+            1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril",
+            5: "maio", 6: "junho", 7: "julho", 8: "agosto",
+            9: "setembro", 10: "outubro", 11: "novembro", 12: "dezembro"
+        }
+
+        # Extrair mês e ano de data_inicio (formato DD/MM/YYYY)
+        partes = data_inicio.split('/')
+        mes = int(partes[1])
+        ano = partes[2]
+
+        nome_mes = NOMES_MESES[mes]
+        pasta_mes = f"{mes}-{nome_mes}"
+
+        destino = os.path.join("faturas", ano, pasta_mes)
+        os.makedirs(destino, exist_ok=True)
+
         data_inicio_fmt = data_inicio.replace('/', '-')
         data_fim_fmt = data_fim.replace('/', '-')
         filename = f"Fatura_{numero_fatura}_{data_inicio_fmt}_a_{data_fim_fmt}.pdf"
-        
-        return os.path.join(faturas_dir, filename)
+
+        return os.path.join(destino, filename)
     
     @staticmethod
     def validar_formato_data(data_str, formato="%d/%m/%Y"):
