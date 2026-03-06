@@ -8,18 +8,19 @@ Sistema automatizado para geração de faturas baseado em dados de timesheet obt
 gerador-fatura/
 ├── gerador_fatura.py     # Arquivo principal
 ├── config.py             # Configurações e dados pessoais
-├── cliente_api           # Cliente para interação com API
+├── cliente_api.py        # Cliente para interação com API
 ├── processar_dados.py    # Processamento de dados
 ├── gerar_PDF.py          # Geração de PDF
 ├── utils_data.py         # Utilitários de data
 ├── requirements.txt      # Dependências
-├── faturas/              # Diretório onde os PDFs são salvos
+├── faturas/              # PDFs organizados por ano e mês
 └── README.md             # Este arquivo
 ```
 
 ## Instalação
 
 ### Pré-requisitos
+
 - Python **3.10 ou superior**
 - Python 3.10 venv instalado (`apt install python3.10-venv`)
 - `git` instalado (`sudo apt install -y git`)
@@ -83,16 +84,18 @@ CLIENTE_ENDERECO=Endereço do Cliente
 # Invoice Configuration
 NUMERO_FATURA=1
 TAXA_HORA=60.0
-MES_COMPLETO=08/2025
+MES_COMPLETO=          # Opcional: deixe vazio para usar o mês anterior automaticamente
 TAGS_INTERESSE=development,meeting
 ```
 
 **Configurações importantes:**
-- `MES_COMPLETO`: Período da fatura no formato MM/YYYY (se não especificado, usa o mês anterior automaticamente)
-- `TAXA_HORA`: Valor da hora trabalhada 
+
+- `MES_COMPLETO`: Período da fatura no formato `MM/YYYY`. **Se deixado vazio, usa automaticamente o mês anterior** — ideal para rodar todo dia 5 do mês corrente
+- `TAXA_HORA`: Valor da hora trabalhada
 - `TAGS_INTERESSE`: Tags de timesheet separadas por vírgula (ex: `development,meeting,tests`)
 
 ⚠️ **Importante**: O arquivo `.env` contém informações sensíveis e não deve ser commitado no git. Ele já está incluído no `.gitignore`.
+
 ## Uso
 
 Execute o arquivo principal:
@@ -104,6 +107,7 @@ python3 gerador_fatura.py
 ```
 
 O sistema irá:
+
 1. Fazer login na API
 2. Buscar dados de timesheet do período configurado
 3. Processar os dados
@@ -112,30 +116,40 @@ O sistema irá:
 ## Estrutura dos Módulos
 
 ### `gerador_fatura.py`
+
 Arquivo principal que orquestra todo o processo.
 
 ### `config.py`
+
 Contém todas as configurações, credenciais e dados pessoais.
 
-### `cliente_api`
+### `cliente_api.py`
+
 Responsável pela comunicação com a API GraphQL:
+
 - Autenticação
 - Consultas de dados
 
 ### `processar_dados.py`
+
 Processa os dados brutos da API:
+
 - Filtragem por período
 - Agrupamento por tags
 - Formatação de dados
 
 ### `gerar_PDF.py`
+
 Gera o PDF da fatura:
+
 - Formatação do documento
 - Tabelas e estilos
 - Cálculos de valores
 
 ### `utils_data.py`
+
 Utilitários para manipulação de datas:
+
 - Cálculo de períodos
 - Formatação de nomes de arquivo
 - Validação de datas
@@ -153,6 +167,7 @@ TAGS_INTERESSE = ['development', 'meeting', 'tests', 'nova_tag']
 ### Modificar Layout do PDF
 
 Edite os métodos em `gerar_PDF.py` para personalizar:
+
 - Estilos de texto
 - Cores das tabelas
 - Estrutura do documento
@@ -164,6 +179,7 @@ Modifique os métodos em `utils_data.py` para diferentes formatos.
 ## Tratamento de Erros
 
 O sistema possui tratamento de erros para:
+
 - Falhas de autenticação
 - Problemas de conexão com API
 - Dados inválidos
@@ -171,13 +187,13 @@ O sistema possui tratamento de erros para:
 
 ## Arquivos Gerados
 
-Os PDFs são automaticamente salvos no diretório `faturas/` (criado automaticamente se não existir) no formato:
+Os PDFs são automaticamente salvos organizados por ano e mês dentro de `faturas/`, com pastas criadas automaticamente:
 
 ```
-faturas/Fatura_[NUMERO]_[DATA_INICIO]_a_[DATA_FIM].pdf
+faturas/{ANO}/{MES}-{nome_mes}/Fatura_[NUMERO]_[DATA_INICIO]_a_[DATA_FIM].pdf
 ```
 
-Exemplo: `faturas/Fatura_3_01-06-2025_a_30-06-2025.pdf`
+Exemplo: `faturas/2025/6-junho/Fatura_3_01-06-2025_a_30-06-2025.pdf`
 
 ## Dependências
 
@@ -192,6 +208,7 @@ Exemplo: `faturas/Fatura_3_01-06-2025_a_30-06-2025.pdf`
 ### Erro de Autenticação
 
 Verifique se:
+
 - Email e senha estão corretos no `config.py`
 - A API está acessível
 - As credenciais têm permissões adequadas
@@ -199,6 +216,7 @@ Verifique se:
 ### Nenhum Dado Encontrado
 
 Verifique se:
+
 - O período está correto
 - Existem dados de timesheet para o período
 - As tags estão configuradas corretamente
@@ -206,6 +224,7 @@ Verifique se:
 ### Erro na Geração do PDF
 
 Verifique se:
+
 - Todas as dependências estão instaladas
 - Há permissão de escrita no diretório
 - Os dados processados são válidos
