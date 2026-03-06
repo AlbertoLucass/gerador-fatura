@@ -33,7 +33,7 @@ INFO_FATURA = {
 
 NUMERO_FATURA = os.getenv("NUMERO_FATURA")
 TAXA_HORA = float(os.getenv("TAXA_HORA", "1.0"))
-MES_COMPLETO = os.getenv("MES_COMPLETO", (date.today() - relativedelta(months=1)).strftime("%m/%Y"))
+MES_COMPLETO = os.getenv("MES_COMPLETO") or (date.today() - relativedelta(months=1)).strftime("%m/%Y")
 
 PDF_CONFIG = {
     "pagesize": "A4",
