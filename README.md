@@ -82,17 +82,39 @@ CLIENTE_CNPJ=00.000.000/0001-00
 CLIENTE_ENDERECO=Endereço do Cliente
 
 # Invoice Configuration
-NUMERO_FATURA=1
+NUMERO_FATURA=          # Opcional: leave empty for automatic numbering based on directory structure
 TAXA_HORA=60.0
-MES_COMPLETO=          # Opcional: deixe vazio para usar o mês anterior automaticamente
+MES_COMPLETO=          # Opcional: leave empty to automatically use the previous month
 TAGS_INTERESSE=development,meeting
 ```
 
 **Configurações importantes:**
 
+- `NUMERO_FATURA`: Número da fatura. **Se deixado vazio, calcula automaticamente** baseado nas pastas existentes em `faturas/{ano}/`. Por exemplo, se existem pastas `10-janeiro`, `11-fevereiro`, a próxima será `12`
 - `MES_COMPLETO`: Período da fatura no formato `MM/YYYY`. **Se deixado vazio, usa automaticamente o mês anterior** — ideal para rodar todo dia 5 do mês corrente
 - `TAXA_HORA`: Valor da hora trabalhada
 - `TAGS_INTERESSE`: Tags de timesheet separadas por vírgula (ex: `development,meeting,tests`)
+
+### Numeração Automática de Faturas
+
+O sistema calcula automaticamente o número da fatura quando `NUMERO_FATURA` não está definido:
+
+1. Verifica o diretório `faturas/{ano_atual}/`
+2. Extrai o maior número das pastas existentes (ex: `11-fevereiro` → 11)
+3. Incrementa esse número para a próxima fatura
+
+**Exemplo:**
+
+```
+faturas/2026/
+├── 10-janeiro/
+├── 11-fevereiro/
+└── (próxima fatura será número 12)
+```
+
+**Continuidade entre anos:** Se o diretório do ano atual estiver vazio (ex: janeiro de 2027), o sistema verifica o ano anterior para manter a sequência. Assim, se 2026 terminou com `21-dezembro`, a primeira fatura de 2027 será `22`.
+
+Se precisar sobrescrever manualmente, basta definir `NUMERO_FATURA` no arquivo `.env`.
 
 ⚠️ **Importante**: O arquivo `.env` contém informações sensíveis e não deve ser commitado no git. Ele já está incluído no `.gitignore`.
 
@@ -187,13 +209,15 @@ O sistema possui tratamento de erros para:
 
 ## Arquivos Gerados
 
-Os PDFs são automaticamente salvos organizados por ano e mês dentro de `faturas/`, com pastas criadas automaticamente:
+Os PDFs são automaticamente salvos organizados por ano e número sequencial dentro de `faturas/`, com pastas criadas automaticamente:
 
 ```
-faturas/{ANO}/{MES}-{nome_mes}/Fatura_[NUMERO]_[DATA_INICIO]_a_[DATA_FIM].pdf
+faturas/{ANO}/{NUMERO_FATURA}-{nome_mes}/Fatura_[NUMERO]_[DATA_INICIO]_a_[DATA_FIM].pdf
 ```
 
-Exemplo: `faturas/2025/6-junho/Fatura_3_01-06-2025_a_30-06-2025.pdf`
+Exemplo: `faturas/2026/12-março/Fatura_12_01-03-2026_a_31-03-2026.pdf`
+
+**Nota:** O número da pasta corresponde ao número sequencial da fatura (definido automaticamente ou manualmente), não ao número do mês calendarário.
 
 ## Dependências
 

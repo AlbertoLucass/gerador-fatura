@@ -41,7 +41,7 @@ class UtilsData:
         ano = partes[2]
 
         nome_mes = NOMES_MESES[mes]
-        pasta_mes = f"{mes}-{nome_mes}"
+        pasta_mes = f"{numero_fatura}-{nome_mes}"
 
         destino = os.path.join("faturas", ano, pasta_mes)
         os.makedirs(destino, exist_ok=True)

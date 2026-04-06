@@ -32,6 +32,42 @@ INFO_FATURA = {
 }
 
 NUMERO_FATURA = os.getenv("NUMERO_FATURA")
+if not NUMERO_FATURA:
+    # Auto-generate invoice number based on existing directories
+    def get_next_invoice_number(year=None):
+        """Get next invoice number by scanning existing year directories.
+        
+        If current year has no directories, checks previous years to continue
+        the sequential numbering (e.g., 2027 continues from 2026's last number).
+        """
+        if year is None:
+            year = date.today().year
+        
+        base_path = os.path.join(os.path.dirname(__file__), "faturas")
+        
+        # Try current year, then go backwards if empty
+        while year >= 2025:  # Year you started invoicing
+            faturas_dir = os.path.join(base_path, str(year))
+            
+            if os.path.exists(faturas_dir):
+                max_number = 0
+                for entry in os.listdir(faturas_dir):
+                    # Extract number from directory name (e.g., "10-janeiro" -> 10)
+                    if "-" in entry:
+                        try:
+                            num = int(entry.split("-")[0].strip())
+                            max_number = max(max_number, num)
+                        except ValueError:
+                            continue
+                
+                if max_number > 0:
+                    return max_number + 1
+            
+            year -= 1  # Check previous year
+        
+        return 1  # Fallback if no directories found at all
+    
+    NUMERO_FATURA = str(get_next_invoice_number())
 TAXA_HORA = float(os.getenv("TAXA_HORA", "1.0"))
 MES_COMPLETO = os.getenv("MES_COMPLETO") or (date.today() - relativedelta(months=1)).strftime("%m/%Y")
 
