@@ -60,8 +60,8 @@ class ClienteAPI:
             "query": """{
                 records(where: { 
                     sheet: { key_regex: "timesheet" } 
-                    dynamicFields: { start_date_regex: "%s"}
-                } order: { updatedAt: DESC}) {
+                    dynamicFields: { month_regex: "%s" }
+                } order: { updatedAt: DESC }) {
                     count
                     data {
                         id
@@ -82,17 +82,21 @@ class ClienteAPI:
 
             if response.status_code == 200:
                 data = response.json()
+
                 if 'errors' not in data:
-                    print(f"Dados recuperados com sucesso! Total de registros: {data['data']['records']['count']}")
+                    total = data['data']['records']['count']
+                    print(f"Dados recuperados com sucesso! Total de registros: {total}")
                     return data['data']['records']['data']
                 else:
                     print(f"Erro na consulta: {data['errors']}")
             else:
                 print(f"Status {response.status_code} na resposta da API.")
+                
         except requests.exceptions.HTTPError as e:
             print(f"Erro HTTP: {e}")
             raise
         except Exception as e:
             print(f"Erro geral: {e}")
             raise
+
         raise Exception("Erro ao buscar dados do timesheet.")
