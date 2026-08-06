@@ -92,6 +92,16 @@ MES_COMPLETO=          # Opcional: leave empty to automatically use the previous
 TAGS_INTERESSE=development,meeting
 ```
 
+**2FA:** se o login retornar `preAuthToken`, o sistema pede no terminal o código recebido por email. Depois, valida o código com a mesma mutation usada pela web: `verifyTwoFactor`.
+
+Na maioria dos casos, nenhuma configuração adicional é necessária. O valor padrão já é:
+
+```bash
+TWO_FACTOR_TYPE=login
+```
+
+Não coloque seu endereço de email em `TWO_FACTOR_TYPE`. Esse campo é o tipo da operação de 2FA, não o canal do email.
+
 **Configurações importantes:**
 
 - `NUMERO_FATURA`: Número da fatura. **Se deixado vazio, calcula automaticamente** baseado nas pastas existentes em `faturas/{ano}/`. Por exemplo, se existem pastas `10-janeiro`, `11-fevereiro`, a próxima será `12`
@@ -135,9 +145,10 @@ python3 gerador_fatura.py
 O sistema irá:
 
 1. Fazer login na API
-2. Buscar dados de timesheet do período configurado
-3. Processar os dados
-4. Gerar um PDF com a fatura
+2. Se a API exigir 2FA, pedir o código recebido por email no terminal
+3. Buscar dados de timesheet do período configurado
+4. Processar os dados
+5. Gerar um PDF com a fatura
 
 ## Estrutura dos Módulos
 
