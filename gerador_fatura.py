@@ -7,6 +7,7 @@ Responsável por orquestrar todo o processo de geração de faturas.
 from cliente_api import ClienteAPI
 from processar_dados import ProcessarDados
 from gerar_PDF import GerarPDF
+from gerar_XLSX import exportar_linhas_xlsx
 from utils_data import UtilsData
 from config import (
     NUMERO_FATURA, 
@@ -37,15 +38,24 @@ class GeradorFatura:
             dados_api = self.cliente_api.buscar_dados_timesheet(data_inicio, data_fim)
             
             print("Processando dados...")
-            resultados = self.processar_dados.processar_dados_api(dados_api, data_inicio, data_fim)
-            
+            linhas, resultados = self.processar_dados.processar_dados_com_linhas(
+                dados_api, data_inicio, data_fim
+            )
+
             if not resultados:
                 print("Nenhum dado encontrado para o período especificado.")
+                if linhas:
+                    nome_arquivo_xlsx = exportar_linhas_xlsx(
+                        linhas, data_inicio=data_inicio
+                    )
+                    print(f"Planilha de linhas do mês gerada: {nome_arquivo_xlsx}")
                 return
-            
+
             nome_arquivo_pdf = self.utils_data.formatar_nome_arquivo(
                 NUMERO_FATURA, data_inicio, data_fim
             )
+            nome_arquivo_xlsx = exportar_linhas_xlsx(linhas, nome_arquivo_pdf)
+            print(f"Planilha de linhas do mês gerada: {nome_arquivo_xlsx}")
             
             print("Gerando PDF...")
             pdf_gerado, total = self.gerar_PDF.gerar_pdf_fatura(

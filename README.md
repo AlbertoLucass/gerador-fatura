@@ -15,9 +15,10 @@ gerador-fatura/
 ├── cliente_api.py        # Cliente para interação com API
 ├── processar_dados.py    # Processamento de dados
 ├── gerar_PDF.py          # Geração de PDF
+├── gerar_XLSX.py         # Exportação das linhas para XLSX
 ├── utils_data.py         # Utilitários de data
 ├── requirements.txt      # Dependências
-├── faturas/              # PDFs organizados por ano e mês
+├── faturas/              # PDFs e planilhas organizados por ano e mês
 └── README.md             # Este arquivo
 ```
 
@@ -148,7 +149,8 @@ O sistema irá:
 2. Se a API exigir 2FA, pedir o código recebido por email no terminal
 3. Buscar dados de timesheet do período configurado
 4. Processar os dados
-5. Gerar um PDF com a fatura
+5. Exportar as linhas do mês para XLSX
+6. Gerar um PDF com a fatura
 
 ## Estrutura dos Módulos
 
@@ -182,6 +184,10 @@ Gera o PDF da fatura:
 - Formatação do documento
 - Tabelas e estilos
 - Cálculos de valores
+
+### `gerar_XLSX.py`
+
+Exporta uma linha por registro processado do timesheet, sem agrupar por descrição. Inclui ID, data, começo, parada, descrição, duração, tag e tarefa.
 
 ### `utils_data.py`
 
@@ -224,11 +230,14 @@ O sistema possui tratamento de erros para:
 
 ## Arquivos Gerados
 
-Os PDFs são automaticamente salvos organizados por ano e número sequencial dentro de `faturas/`, com pastas criadas automaticamente:
+Os arquivos são salvos em `faturas/`, organizados por ano e número sequencial da fatura:
 
 ```
 faturas/{ANO}/{NUMERO_FATURA}-{nome_mes}/Fatura_[NUMERO]_[DATA_INICIO]_a_[DATA_FIM].pdf
+faturas/{ANO}/{NUMERO_FATURA}-{nome_mes}/Fatura_[NUMERO]_[DATA_INICIO]_a_[DATA_FIM]_linhas.xlsx
 ```
+
+A planilha contém uma linha por registro válido no período. Se não houver registros para as tags faturáveis, mas houver linhas válidas, ela fica em `faturas/{ANO}/timesheet/` para não reservar um número de fatura sem gerar PDF.
 
 Exemplo: `faturas/2026/12-março/Fatura_12_01-03-2026_a_31-03-2026.pdf`
 
@@ -241,6 +250,7 @@ Exemplo: `faturas/2026/12-março/Fatura_12_01-03-2026_a_31-03-2026.pdf`
 - `reportlab`: Para geração de PDF
 - `python-dateutil`: Para manipulação de datas
 - `python-dotenv`: Para carregamento de variáveis de ambiente
+- `openpyxl`: Para gravação de arquivos XLSX
 
 ## Troubleshooting
 

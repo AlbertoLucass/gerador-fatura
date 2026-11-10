@@ -6,6 +6,8 @@ para o formato necessário para geração da fatura.
 
 import pandas as pd
 from datetime import datetime
+import re
+import unicodedata
 from config import TAGS_INTERESSE
 
 
@@ -15,6 +17,15 @@ class ProcessarDados:
         self.tags_interesse = TAGS_INTERESSE
     
     def processar_dados_api(self, dados_api, data_inicio, data_fim):
+        _, resultados = self.processar_dados_com_linhas(dados_api, data_inicio, data_fim)
+        return resultados
+
+    def processar_dados_com_linhas(self, dados_api, data_inicio, data_fim):
+        linhas = self.extrair_linhas_api(dados_api, data_inicio, data_fim)
+        resultados = self._agrupar_por_tag(linhas, data_inicio, data_fim)
+        return linhas, resultados
+
+    def extrair_linhas_api(self, dados_api, data_inicio, data_fim):
         data_inicio_dt = datetime.strptime(data_inicio, "%d/%m/%Y")
         data_fim_dt = datetime.strptime(data_fim, "%d/%m/%Y")
         
@@ -28,6 +39,11 @@ class ProcessarDados:
             duration_str = dynamic_fields.get('duration', '0')
             tag = dynamic_fields.get('tag', 'development')
             task = dynamic_fields.get('task', '')
+            start_time = self._obter_horario(dynamic_fields, 'comeco')
+            stop_time = self._obter_horario(dynamic_fields, 'parada')
+
+            if not start_time and isinstance(start_date_str, str) and 'T' in start_date_str:
+                start_time = start_date_str.split('T', 1)[1]
             
             if not description and task:
                 description = task
@@ -53,13 +69,52 @@ class ProcessarDados:
                 duration = 0.0
             
             registros_processados.append({
+                'id': registro.get('id', ''),
                 'start_date': start_date_dt,
+                'start_time': start_time,
+                'stop_time': stop_time,
                 'description': description,
                 'duration': duration,
-                'tag': tag
+                'tag': tag,
+                'task': task
             })
         
-        return self._agrupar_por_tag(registros_processados, data_inicio, data_fim)
+        return registros_processados
+
+    def _obter_horario(self, dynamic_fields, tipo):
+        aliases = {
+            'comeco': (
+                'start_time', 'start', 'started_at', 'start_datetime',
+                'time_start', 'begin', 'begin_time', 'time_begin',
+                'starttime', 'startedat', 'clock_in', 'check_in', 'time_in',
+                'hora_inicio', 'hora_entrada', 'inicio', 'entrada', 'comeco'
+            ),
+            'parada': (
+                'stop_time', 'stop', 'stopped_at', 'stop_datetime',
+                'end_time', 'end', 'ended_at', 'end_datetime', 'end_date',
+                'stop_date', 'finish_date', 'ending_at', 'time_stop',
+                'time_end', 'finish', 'finish_time', 'stoptime', 'clock_out',
+                'check_out', 'time_out',
+                'stoppedat', 'enddate', 'endedat', 'hora_parada',
+                'hora_fim', 'hora_saida', 'parada', 'saida', 'fim'
+            )
+        }
+        campos = {
+            self._normalizar_nome_campo(chave): valor
+            for chave, valor in dynamic_fields.items()
+        }
+        for alias in aliases[tipo]:
+            valor = campos.get(self._normalizar_nome_campo(alias))
+            if valor not in (None, ''):
+                return valor
+        return ''
+
+    @staticmethod
+    def _normalizar_nome_campo(chave):
+        chave = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', '_', str(chave))
+        chave = unicodedata.normalize('NFKD', chave)
+        chave = ''.join(char for char in chave if not unicodedata.combining(char))
+        return re.sub(r'[^a-zA-Z0-9]+', '_', chave).strip('_').lower()
     
     def _processar_data(self, start_date_str):
         if 'T' in start_date_str:
